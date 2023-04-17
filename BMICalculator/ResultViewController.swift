@@ -9,9 +9,14 @@ import UIKit
 
 class ResultViewController: UIViewController {
     
+    var bmi: BMICategory?
+    
+    var bmiValue: String?
+    var advice: String?
+    var color: UIColor?
+    
     private let titleLable: UILabel = {
        let label = UILabel()
-        label.text = "YOUR RESULT"
         label.textAlignment = .center
         label.font = UIFont.boldSystemFont(ofSize: 40)
         return label
@@ -24,43 +29,38 @@ class ResultViewController: UIViewController {
         return label
     }()
     
-    private let backButton: UIButton = {
+    lazy var backButton: UIButton = {
        let button = UIButton()
         button.setTitle("Back", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = #colorLiteral(red: 0.1538562477, green: 0.5370084643, blue: 0.8060141206, alpha: 1)
         button.layer.cornerRadius = 15
+        button.addTarget(self, action: #selector(backButtonPressed), for: .touchUpInside)
         return button
     }()
     
-    private var bmi: Float
-    
-    init(bmi: Float) {
-        self.bmi = bmi
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        setupUI()
         configere()
-        showResult()
-    }
-    
-    func showResult() {
-        resultLable.text = String(format: "Your BMI is %.2f", bmi)
         
-        backButton.addTarget(self, action: #selector(backButtonPressed), for: .touchUpInside)
     }
     
     @objc func backButtonPressed() {
-        navigationController?.popViewController(animated: true)
+        dismiss(animated: true, completion: nil)
+        
     }
 
+    private func setupUI() {
+        if let bmi = bmi {
+            
+            resultLable.text = String(format: "%.1f", bmi.value)
+            titleLable.text = bmi.advice
+            view.backgroundColor = bmi.color
+            
+        }
+    }
 
 }
 

@@ -8,9 +8,14 @@
 import UIKit
 import SnapKit
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController {
+    
+    // MARK: - Properties
     
     let screenImage = UIImage(named: "y")
+    var bmi: BMICategory?
+    
+    // MARK: - UI Properties
     
     lazy var mainImageView: UIImageView = {
        var imageView = UIImageView()
@@ -33,7 +38,7 @@ class ViewController: UIViewController {
     
     private let weightLabel: UILabel = {
        let lable = UILabel()
-        lable.text = "Weight (kg)"
+        lable.text = "Weight"
         lable.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         lable.textColor = .white
         return lable
@@ -41,7 +46,7 @@ class ViewController: UIViewController {
     
     private let heightLabel: UILabel = {
        let lable = UILabel()
-        lable.text = "Height (cm)"
+        lable.text = "Height"
         lable.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         lable.textColor = .white
         return lable
@@ -63,38 +68,121 @@ class ViewController: UIViewController {
         return slider
     }()
     
-    private let calculateButton: UIButton = {
+    private let weightTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "kg"
+        textField.font = UIFont.systemFont(ofSize: 15)
+        textField.borderStyle = .roundedRect
+        textField.adjustsFontSizeToFitWidth = true
+        textField.layer.cornerRadius = 20
+        textField.backgroundColor = .white
+        textField.keyboardType = .decimalPad
+        return textField
+    }()
+    
+    private let heightTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "cm"
+        textField.font = UIFont.systemFont(ofSize: 15)
+        textField.borderStyle = .roundedRect
+        textField.layer.cornerRadius = 20
+        textField.backgroundColor = .white
+        textField.adjustsFontSizeToFitWidth = true
+        textField.keyboardType = .decimalPad
+        return textField
+    }()
+    
+    lazy var calculateButton: UIButton = {
        let button = UIButton()
         button.setTitle("Calculate", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = #colorLiteral(red: 0.1538562477, green: 0.5370084643, blue: 0.8060141206, alpha: 1)
         button.layer.cornerRadius = 15
-        
+        button.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
         return button
     }()
     
-
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(mainImageView)
         
-        calculateButton.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
+        //calculateButton.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
         
         configure()
+        setValue(for: weightTextField, heightTextField)
         
     }
+    
+    // MARK: - Methods
+    
+    
 
     @objc private func buttonPressed() {
+        
+        calculateBMI()
+        
+        performSegue(withIdentifier: "showResult", sender: self)
+        
+       /*
         let weight = weightSlider.value
         let height = heightSlider.value
         
-        let bmi = weight / pow(height, 2)//(height * height)
+        let bmiValue = weight / (height * height)
         
-        let resultVC = ResultViewController(bmi: bmi)
-        navigationController?.pushViewController(resultVC, animated: true)
+        if bmiValue < 18.5 {
+            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Eat more pies", color: .blue)
+        } else if bmiValue < 24.9 {
+            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Fit as a fiddle", color: .green)
+        } else {
+            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Eat less pies", color: .red)
+        }
+        
+        //performSegue(withIdentifier: "showResult", sender: self)
+       */
     }
-
+    
+    private func calculateBMI() {
+        guard let height = Float(heightTextField.text ?? ""), let weight = Float(weightTextField.text ?? "") else { return }
+        let bmiValue = weight / (height * height)
+        
+        if bmiValue < 18.5 {
+            bmi = BMICategory(value: bmiValue, advice: "Eat more pies", color: .blue)
+        } else if bmiValue < 24.9 {
+            bmi = BMICategory(value: bmiValue, advice: "Fit as a fiddle", color: .green)
+        } else {
+            bmi = BMICategory(value: bmiValue, advice: "Eat less pies", color: .red)
+        }
+    }
+    private func setValue(for sender: UITextField...) {
+        sender.forEach { sender in
+            switch sender {
+            case weightTextField: sender.text = setString(from: weightSlider)
+            default: sender.text = setString(from: heightSlider)
+            }
+        }
+    }
+    
+    private func setString(from slider: UISlider) -> String {
+        String(format: "%.1f", slider.value)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showResult"{
+            guard let resultVC = segue.destination as? ResultViewController else { return }
+            
+            resultVC.bmi = bmi
+            
+            /* resultVC.bmiValue = bmi?.value
+             resultVC.advice = bmi?.advice
+             resultVC.color = bmi?.color
+             */
+        }
+    }
 }
+
+// MARK: - ExtentionViewController
 
 extension ViewController {
     func configure() {
@@ -128,6 +216,12 @@ extension ViewController {
             make.bottom.equalTo(weightSlider.snp.top).offset(-15)
         }
         
+        view.addSubview(weightTextField)
+        weightTextField.snp.makeConstraints { make in
+            make.bottom.equalTo(weightSlider.snp.top).offset(-10)
+            make.trailing.equalToSuperview().offset(-25)
+        }
+        
         view.addSubview(heightSlider)
         heightSlider.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
@@ -139,6 +233,12 @@ extension ViewController {
         heightLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(25)
             make.bottom.equalTo(heightSlider.snp.top).offset(-15)
+        }
+        
+        view.addSubview(heightTextField)
+        heightTextField.snp.makeConstraints { make in
+            make.bottom.equalTo(heightSlider.snp.top).offset(-10)
+            make.trailing.equalToSuperview().offset(-25)
         }
         
     }
