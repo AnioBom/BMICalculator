@@ -18,7 +18,7 @@ final class ViewController: UIViewController {
     // MARK: - UI Properties
     
     lazy var mainImageView: UIImageView = {
-       var imageView = UIImageView()
+        var imageView = UIImageView()
         imageView = UIImageView(frame: self.view.bounds)
         imageView.image = screenImage
         imageView.contentMode = .scaleAspectFill
@@ -26,7 +26,7 @@ final class ViewController: UIViewController {
         return imageView
     }()
     
-    private let titleLable: UILabel = {
+    let titleLable: UILabel = {
         let label = UILabel()
         label.text = "Calculate your BMI"
         label.font = UIFont.systemFont(ofSize: 40, weight: .semibold)
@@ -36,39 +36,41 @@ final class ViewController: UIViewController {
         return label
     }()
     
-    private let weightLabel: UILabel = {
-       let lable = UILabel()
+    let weightLabel: UILabel = {
+        let lable = UILabel()
         lable.text = "Weight"
         lable.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         lable.textColor = .white
         return lable
     }()
     
-    private let heightLabel: UILabel = {
-       let lable = UILabel()
+    let heightLabel: UILabel = {
+        let lable = UILabel()
         lable.text = "Height"
         lable.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         lable.textColor = .white
         return lable
     }()
     
-    private let weightSlider: UISlider = {
+    lazy var weightSlider: UISlider = {
         let slider = UISlider()
         slider.maximumValue = 200
         slider.minimumTrackTintColor = #colorLiteral(red: 0, green: 0.8375163674, blue: 1, alpha: 1)
         slider.maximumTrackTintColor = .systemGray3
+        slider.addTarget(self, action: #selector(wigthSliderValue), for: .valueChanged)
         return slider
     }()
     
-    private let heightSlider: UISlider = {
+    lazy var heightSlider: UISlider = {
         let slider = UISlider()
         slider.maximumValue = 3
         slider.minimumTrackTintColor = #colorLiteral(red: 0, green: 0.8375163674, blue: 1, alpha: 1)
         slider.maximumTrackTintColor = .systemGray3
+        slider.addTarget(self, action: #selector(heightSliderValue), for: .valueChanged)
         return slider
     }()
     
-    private let weightTextField: UITextField = {
+    lazy var wightTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "kg"
         textField.font = UIFont.systemFont(ofSize: 15)
@@ -77,10 +79,11 @@ final class ViewController: UIViewController {
         textField.layer.cornerRadius = 20
         textField.backgroundColor = .white
         textField.keyboardType = .decimalPad
+        textField.addTarget(self, action: #selector(wightTextFieldChange), for: .editingChanged)
         return textField
     }()
     
-    private let heightTextField: UITextField = {
+    lazy var heightTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "cm"
         textField.font = UIFont.systemFont(ofSize: 15)
@@ -89,11 +92,12 @@ final class ViewController: UIViewController {
         textField.backgroundColor = .white
         textField.adjustsFontSizeToFitWidth = true
         textField.keyboardType = .decimalPad
+        textField.addTarget(self, action: #selector(heightTextFieldChange), for: .editingChanged)
         return textField
     }()
     
     lazy var calculateButton: UIButton = {
-       let button = UIButton()
+        let button = UIButton()
         button.setTitle("Calculate", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = #colorLiteral(red: 0.1538562477, green: 0.5370084643, blue: 0.8060141206, alpha: 1)
@@ -107,23 +111,60 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(mainImageView)
+        title = "Calculate"
         
-        //calculateButton.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
         
         configure()
-        setValue(for: weightTextField, heightTextField)
-        
     }
     
     // MARK: - Methods
     
     
-
+    
     @objc private func buttonPressed() {
         
-        calculateBMI()
+        if let heightText = heightTextField.text, let weightText = wightTextField.text, let height = Float(heightText), let weight = Float(weightText) {
+            let bmi = calculateBMI(height: height, weight: weight)
+            
+            let resultCV = ResultViewController()
+            resultCV.bmi = bmi
+        } else {
+            let alert = UIAlertController(title: "Error", message: "Please enter vailed height and weight", preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "Ok", style: .default)
+            alert.addAction(okAction)
+            present(alert, animated: true)
+        }
         
-        performSegue(withIdentifier: "showResult", sender: self)
+        let resultVC = ResultViewController()
+        self.present(resultVC, animated: true)
+    }
+    
+    func calculateBMI(height: Float, weight: Float) -> Float {
+        let heightMeters = height / 100
+        let bmi = weight / (heightMeters * heightMeters)
+        return bmi
+    }
+    
+    @objc func wigthSliderValue() {
+        wightTextField.text = String(format: "%.0f", weightSlider.value)
+    }
+    
+    @objc func heightSliderValue() {
+        heightTextField.text = String(format: "%.0f", heightSlider.value)
+    }
+    
+    @objc func wightTextFieldChange() {
+        if let text = wightTextField.text, let value = Float(text) {
+            weightSlider.value = value
+        }
+    }
+    
+    @objc func heightTextFieldChange() {
+        if let text = heightTextField.text, let value = Float(text) {
+            heightSlider.value = value
+        }
+    }
+}
         
        /*
         let weight = weightSlider.value
@@ -140,11 +181,11 @@ final class ViewController: UIViewController {
         }
         
         //performSegue(withIdentifier: "showResult", sender: self)
-       */
+    
     }
     
     private func calculateBMI() {
-        guard let height = Float(heightTextField.text ?? ""), let weight = Float(weightTextField.text ?? "") else { return }
+        guard let height = Float(heightTextField.text ?? ""), let weight = Float(wightTextField.text ?? "") else { return }
         let bmiValue = weight / (height * height)
         
         if bmiValue < 18.5 {
@@ -155,91 +196,10 @@ final class ViewController: UIViewController {
             bmi = BMICategory(value: bmiValue, advice: "Eat less pies", color: .red)
         }
     }
-    private func setValue(for sender: UITextField...) {
-        sender.forEach { sender in
-            switch sender {
-            case weightTextField: sender.text = setString(from: weightSlider)
-            default: sender.text = setString(from: heightSlider)
-            }
-        }
-    }
     
     private func setString(from slider: UISlider) -> String {
         String(format: "%.1f", slider.value)
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showResult"{
-            guard let resultVC = segue.destination as? ResultViewController else { return }
-            
-            resultVC.bmi = bmi
-            
-            /* resultVC.bmiValue = bmi?.value
-             resultVC.advice = bmi?.advice
-             resultVC.color = bmi?.color
-             */
-        }
-    }
 }
-
-// MARK: - ExtentionViewController
-
-extension ViewController {
-    func configure() {
-       // view.backgroundColor = .white
-        
-        view.addSubview(titleLable)
-        titleLable.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(160)
-            make.leading.equalToSuperview().offset(160)
-            make.trailing.equalToSuperview().offset(-30)
-        }
-        
-        view.addSubview(calculateButton)
-        calculateButton.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.bottom.equalToSuperview().offset(-50)
-            make.width.equalTo(200)
-            make.height.equalTo(50)
-        }
-        
-        view.addSubview(weightSlider)
-        weightSlider.snp.makeConstraints { make in
-            make.bottom.equalTo(calculateButton.snp.top).offset(-60)
-            make.centerX.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(20)
-        }
-        
-        view.addSubview(weightLabel)
-        weightLabel.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(25)
-            make.bottom.equalTo(weightSlider.snp.top).offset(-15)
-        }
-        
-        view.addSubview(weightTextField)
-        weightTextField.snp.makeConstraints { make in
-            make.bottom.equalTo(weightSlider.snp.top).offset(-10)
-            make.trailing.equalToSuperview().offset(-25)
-        }
-        
-        view.addSubview(heightSlider)
-        heightSlider.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.bottom.equalTo(weightSlider.snp.top).offset(-60)
-            make.leading.trailing.equalToSuperview().inset(20)
-        }
-       
-        view.addSubview(heightLabel)
-        heightLabel.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(25)
-            make.bottom.equalTo(heightSlider.snp.top).offset(-15)
-        }
-        
-        view.addSubview(heightTextField)
-        heightTextField.snp.makeConstraints { make in
-            make.bottom.equalTo(heightSlider.snp.top).offset(-10)
-            make.trailing.equalToSuperview().offset(-25)
-        }
-        
-    }
-}
+*/

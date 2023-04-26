@@ -9,23 +9,24 @@ import UIKit
 
 class ResultViewController: UIViewController {
     
-    var bmi: BMICategory?
+    //var bmi: BMICategory?
     
-    var bmiValue: String?
-    var advice: String?
-    var color: UIColor?
+    var bmi: Float?
     
+
     private let titleLable: UILabel = {
        let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont.boldSystemFont(ofSize: 40)
+        label.textColor = .black
         return label
     }()
-    
+
     private let resultLable: UILabel = {
        let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont.boldSystemFont(ofSize: 50)
+        label.textColor = .black
         return label
     }()
     
@@ -42,7 +43,7 @@ class ResultViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+       // setupUI()
         configere()
         
     }
@@ -51,7 +52,16 @@ class ResultViewController: UIViewController {
         dismiss(animated: true, completion: nil)
         
     }
-
+    
+    func bmiA() {
+        if let bmi = bmi {
+            let result = String(format: "BMI: %.2f", bmi)
+            resultLable.text = result
+        } else {
+            resultLable.text = "No result avalible"
+        }
+    }
+/*
     private func setupUI() {
         if let bmi = bmi {
             
@@ -61,18 +71,20 @@ class ResultViewController: UIViewController {
             
         }
     }
-
+*/
 }
 
 extension ResultViewController {
     private func configere() {
+        view.backgroundColor = .white
+    
         view.addSubview(titleLable)
         titleLable.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(150)
+            make.top.equalToSuperview().offset(50)
             make.leading.trailing.equalToSuperview().inset(20)
-            make.bottom.equalTo(resultLable.snp.top).offset(50)
+            make.centerX.equalToSuperview()
         }
-        
+    
         view.addSubview(resultLable)
         resultLable.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
