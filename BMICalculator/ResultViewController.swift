@@ -9,10 +9,9 @@ import UIKit
 
 class ResultViewController: UIViewController {
     
-    //var bmi: BMICategory?
-    
-    var bmi: Float?
-    
+    var bmiValue: String?
+    var advice: String?
+    var color: UIColor?
 
     private let titleLable: UILabel = {
        let label = UILabel()
@@ -43,39 +42,28 @@ class ResultViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       // setupUI()
-        configere()
-        
+        setupResult()
+        configure()
+    
     }
+    
+    func setupResult() {
+        titleLable.text = advice
+        resultLable.text = bmiValue
+        view.backgroundColor = color
+    }
+    
+    
     
     @objc func backButtonPressed() {
         dismiss(animated: true, completion: nil)
         
     }
     
-    func bmiA() {
-        if let bmi = bmi {
-            let result = String(format: "BMI: %.2f", bmi)
-            resultLable.text = result
-        } else {
-            resultLable.text = "No result avalible"
-        }
-    }
-/*
-    private func setupUI() {
-        if let bmi = bmi {
-            
-            resultLable.text = String(format: "%.1f", bmi.value)
-            titleLable.text = bmi.advice
-            view.backgroundColor = bmi.color
-            
-        }
-    }
-*/
 }
 
 extension ResultViewController {
-    private func configere() {
+    private func configure() {
         view.backgroundColor = .white
     
         view.addSubview(titleLable)

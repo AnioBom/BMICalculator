@@ -8,12 +8,12 @@
 import UIKit
 import SnapKit
 
-final class ViewController: UIViewController {
+final class MainViewController: UIViewController {
     
     // MARK: - Properties
     
     let screenImage = UIImage(named: "y")
-    var bmi: BMICategory?
+    var calculatorBrain = CalculatorBrain()
     
     // MARK: - UI Properties
     
@@ -57,13 +57,13 @@ final class ViewController: UIViewController {
         slider.maximumValue = 200
         slider.minimumTrackTintColor = #colorLiteral(red: 0, green: 0.8375163674, blue: 1, alpha: 1)
         slider.maximumTrackTintColor = .systemGray3
-        slider.addTarget(self, action: #selector(wigthSliderValue), for: .valueChanged)
+        slider.addTarget(self, action: #selector(wiegthSliderValue), for: .valueChanged)
         return slider
     }()
     
     lazy var heightSlider: UISlider = {
         let slider = UISlider()
-        slider.maximumValue = 3
+        slider.maximumValue = 300
         slider.minimumTrackTintColor = #colorLiteral(red: 0, green: 0.8375163674, blue: 1, alpha: 1)
         slider.maximumTrackTintColor = .systemGray3
         slider.addTarget(self, action: #selector(heightSliderValue), for: .valueChanged)
@@ -123,34 +123,33 @@ final class ViewController: UIViewController {
     
     @objc private func buttonPressed() {
         
-        if let heightText = heightTextField.text, let weightText = wightTextField.text, let height = Float(heightText), let weight = Float(weightText) {
-            let bmi = calculateBMI(height: height, weight: weight)
-            
-            let resultCV = ResultViewController()
-            resultCV.bmi = bmi
-        } else {
-            let alert = UIAlertController(title: "Error", message: "Please enter vailed height and weight", preferredStyle: .alert)
+        let value1 = weightSlider.value
+        let value2 = heightSlider.value
+        var text1 = wightTextField.text ?? ""
+        var text2 = heightTextField.text ?? ""
+        
+        calculatorBrain.calculateBMI(height: value1, weight: value2)
+   
+           /* let alert = UIAlertController(title: "Error", message: "Please enter vailed height and weight", preferredStyle: .alert)
             let okAction = UIAlertAction(title: "Ok", style: .default)
             alert.addAction(okAction)
             present(alert, animated: true)
-        }
+            return
+        */
         
-        let resultVC = ResultViewController()
-        self.present(resultVC, animated: true)
+        performSegue(withIdentifier: "result", sender: self)
     }
     
-    func calculateBMI(height: Float, weight: Float) -> Float {
-        let heightMeters = height / 100
-        let bmi = weight / (heightMeters * heightMeters)
-        return bmi
-    }
     
-    @objc func wigthSliderValue() {
-        wightTextField.text = String(format: "%.0f", weightSlider.value)
+    @objc func wiegthSliderValue() {
+        let weight = String(format: "%.0f", weightSlider.value)
+        wightTextField.text = "\(weight) kg"
+        
     }
     
     @objc func heightSliderValue() {
-        heightTextField.text = String(format: "%.0f", heightSlider.value)
+        let height = String(format: "%.0f", heightSlider.value)
+        heightTextField.text = "\(height) m"
     }
     
     @objc func wightTextFieldChange() {
@@ -164,42 +163,15 @@ final class ViewController: UIViewController {
             heightSlider.value = value
         }
     }
-}
-        
-       /*
-        let weight = weightSlider.value
-        let height = heightSlider.value
-        
-        let bmiValue = weight / (height * height)
-        
-        if bmiValue < 18.5 {
-            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Eat more pies", color: .blue)
-        } else if bmiValue < 24.9 {
-            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Fit as a fiddle", color: .green)
-        } else {
-            bmi = BMICategory(value: String(format: "%.1f", bmiValue), advice: "Eat less pies", color: .red)
-        }
-        
-        //performSegue(withIdentifier: "showResult", sender: self)
-    
-    }
-    
-    private func calculateBMI() {
-        guard let height = Float(heightTextField.text ?? ""), let weight = Float(wightTextField.text ?? "") else { return }
-        let bmiValue = weight / (height * height)
-        
-        if bmiValue < 18.5 {
-            bmi = BMICategory(value: bmiValue, advice: "Eat more pies", color: .blue)
-        } else if bmiValue < 24.9 {
-            bmi = BMICategory(value: bmiValue, advice: "Fit as a fiddle", color: .green)
-        } else {
-            bmi = BMICategory(value: bmiValue, advice: "Eat less pies", color: .red)
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "result" {
+            let destinationVC = segue.destination as! ResultViewController
+            destinationVC.bmiValue = calculatorBrain.getBMIValue()
+            destinationVC.advice = calculatorBrain.detAdvice()
+            destinationVC.color = calculatorBrain.getColor()
         }
     }
-    
-    private func setString(from slider: UISlider) -> String {
-        String(format: "%.1f", slider.value)
-    }
-    
 }
-*/
+        
+     

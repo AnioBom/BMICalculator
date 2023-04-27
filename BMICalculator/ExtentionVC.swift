@@ -10,7 +10,7 @@ import SnapKit
 
 // MARK: - ExtentionViewController
 
-extension ViewController {
+extension MainViewController {
     
     func configure() {
         

@@ -8,9 +8,9 @@
 import UIKit
 
 struct BMICategory {
-    let value: Float //String
+    let value: Float
     let advice: String
     let color: UIColor
     
-    
 }
+
